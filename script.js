@@ -207,6 +207,7 @@ doorScene.addEventListener("click", () => {
   knocks++;
   if (knocks >= 3) {
     doorOpened = true;
+    startMusic();               // النقرة الثالثة إيماءةُ مستخدمٍ تسمح بتشغيل الصوت
     document.getElementById("knockUi").style.opacity = "0";
     heroEl.classList.add("opening");
     setTimeout(() => {
@@ -220,6 +221,56 @@ doorScene.addEventListener("click", () => {
     }, 350);
   }
 });
+
+/* ═══════════ موسيقى الخلفية ═══════════ */
+const bgMusic = document.getElementById("bgMusic");
+const musicToggle = document.getElementById("musicToggle");
+let musicStarted = false;
+function startMusic() {
+  if (musicStarted || !bgMusic) return;
+  musicStarted = true;
+  bgMusic.volume = 0;
+  const p = bgMusic.play();
+  if (p && p.then) {
+    p.then(() => {
+      musicToggle.hidden = false;
+      // تصعيدٌ لطيف للصوت بدل أن يبدأ فجأة
+      let v = 0;
+      const iv = setInterval(() => {
+        v += 0.05;
+        bgMusic.volume = Math.min(v, 0.55);
+        if (v >= 0.55) clearInterval(iv);
+      }, 120);
+    }).catch(() => { musicStarted = false; });
+  } else {
+    musicToggle.hidden = false;
+  }
+}
+if (musicToggle) {
+  musicToggle.addEventListener("click", () => {
+    bgMusic.muted = !bgMusic.muted;
+    musicToggle.classList.toggle("muted", bgMusic.muted);
+    musicToggle.setAttribute("aria-label", bgMusic.muted ? "تشغيل الموسيقى" : "كتم الموسيقى");
+  });
+}
+
+/* ═══════════ مشاركة الدعوة ═══════════ */
+const btnShare = document.getElementById("btnShare");
+if (btnShare) {
+  btnShare.addEventListener("click", async () => {
+    const shareData = {
+      title: "دعوة زفاف أحمد وسارة",
+      text: "يشرّفنا حضوركم حفل زفاف أحمد وسارة 🤍\nالجمعة ٢٠ تشرين الثاني ٢٠٢٦ — قاعة حياة، نابلس",
+      url: location.href,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); return; }
+      catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    const msg = encodeURIComponent(shareData.text + "\n" + shareData.url);
+    window.open("https://wa.me/?text=" + msg, "_blank", "noopener");
+  });
+}
 
 /* ═══════════ الحمامات ═══════════ */
 const PHOTO_DOVES = [
@@ -329,7 +380,12 @@ spawnDoves = function () {
   activeBirds.forEach((bird, i) => {
     const d = document.createElement("div");
     d.className = `dove bird-motion bird-flight bird-flight-${i + 1}`;
-    d.innerHTML = `<div class="dove-inner"><img class="bird-image" src="${bird.image}" alt=""></div>`;
+    // ثلاث لقطات لرفرفة الجناح (أعلى ← وسط ← أسفل) تتبدّل لتُحاكي خفقان الجناح الحقيقي
+    d.innerHTML = `<div class="dove-inner">
+        <img class="bird-image frame frame-1" src="${PHOTO_DOVES[0]}" alt="">
+        <img class="bird-image frame frame-2" src="${PHOTO_DOVES[1]}" alt="">
+        <img class="bird-image frame frame-3" src="${PHOTO_DOVES[2]}" alt="">
+      </div>`;
     d.style.setProperty("--start-x", `${bird.startX}%`);
     d.style.setProperty("--start-y", `${bird.startY}%`);
     d.style.setProperty("--mid-x", `${bird.midX}%`);
@@ -346,9 +402,9 @@ spawnDoves = function () {
     d.style.setProperty("--duration", `${bird.duration}s`);
     d.style.setProperty("--blur-start", `${bird.blurStart}px`);
     d.style.setProperty("--blur-end", `${bird.blurEnd}px`);
-    d.style.setProperty("--flap", `${0.2 + (i % 4) * 0.035}s`);
+    d.style.setProperty("--flap", `${0.42 + (i % 4) * 0.06}s`);
     d.style.zIndex = bird.zIndex;
-    if (bird.flip) d.querySelector("img").classList.add("flipped");
+    if (bird.flip) d.querySelectorAll("img").forEach((im) => im.classList.add("flipped"));
     wrap.appendChild(d);
     d.addEventListener("animationend", () => d.remove());
   });
@@ -444,25 +500,48 @@ document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
 /* ═══════════ تقويم آيفون (ملف ICS) ═══════════ */
 document.getElementById("btnIcs").addEventListener("click", () => {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//wedding//ar",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
     "BEGIN:VEVENT",
+    "UID:ahmad-sara-wedding-20261120@invitation",
+    `DTSTAMP:${stamp}`,
     "DTSTART:20261120T170000Z",
     "DTEND:20261120T220000Z",
     `SUMMARY:حفل زفاف ${CONFIG.groom} و ${CONFIG.bride}`,
     `LOCATION:${CONFIG.venue}`,
     "DESCRIPTION:فتحنا باب فرحتنا.. وطارت البشائر بدعوتكم",
+    "BEGIN:VALARM",
+    "TRIGGER:-P1D",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:تذكير بحفل الزفاف غدًا",
+    "END:VALARM",
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");
+
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (isIOS) {
+    // على iOS تحميل blob عبر download غير موثوق — نفتح data URI فيعرض iOS "أضف إلى التقويم"
+    window.location.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+    return;
+  }
+  // بقية الأجهزة (أندرويد/ويندوز/ماك): تنزيل ملف .ics
   const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
+  a.href = url;
   a.download = "wedding.ics";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 });
 
 /* ═══════════ تأكيد الحضور ═══════════ */

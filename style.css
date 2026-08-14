@@ -109,26 +109,37 @@ main { max-width: 480px; margin: 0 auto; }
   opacity: 0;
   z-index: 2;
 }
+/* رجّةٌ للباب كلّه عند الطرق — كأنّ قبضةً حقيقيّة دقّت على الخشب */
 .door-scene.knock-hit {
-  animation: none;
+  animation: doorShake .46s cubic-bezier(.2,.7,.3,1);
+}
+@keyframes doorShake {
+  0%, 100% { transform: translateY(0) scale(1); }
+  14% { transform: translateY(1.6px) scale(.9965); }
+  34% { transform: translateY(2.6px) scale(.993); }
+  52% { transform: translateY(-.8px) scale(1.0015); }
+  70% { transform: translateY(.9px) scale(.9992); }
+  85% { transform: translateY(-.3px) scale(1.0004); }
 }
 .door-scene.knock-hit::before {
-  animation: doorPress .42s cubic-bezier(.18,.78,.2,1);
+  animation: doorPress .46s cubic-bezier(.18,.78,.2,1);
 }
 .door-scene.knock-hit::after {
-  animation: pressLight .42s cubic-bezier(.18,.78,.2,1);
+  animation: pressLight .46s cubic-bezier(.18,.78,.2,1);
 }
+/* الضربة: ظلٌّ يتجمّع حول نقطة الطرق ثمّ يرتدّ — أعمق وأوقع من قبل */
 @keyframes doorPress {
   0%, 100% { transform: scale(1) translateY(0); opacity: .78; filter: brightness(1); }
-  22% { transform: scale(.996) perspective(900px) translateY(1.4px) rotateX(.45deg); opacity: .94; filter: brightness(.84) contrast(1.06); }
-  48% { transform: scale(.991) perspective(900px) translateY(2.2px) rotateX(.7deg); opacity: .98; filter: brightness(.78) contrast(1.08); }
-  72% { transform: scale(1.002) perspective(900px) translateY(-.6px) rotateX(-.18deg); opacity: .62; filter: brightness(1.08); }
+  18% { transform: scale(.992) perspective(900px) translateY(1.8px) rotateX(.6deg); opacity: 1; filter: brightness(.72) contrast(1.12); }
+  44% { transform: scale(.985) perspective(900px) translateY(3px) rotateX(.95deg); opacity: 1; filter: brightness(.62) contrast(1.16); }
+  70% { transform: scale(1.004) perspective(900px) translateY(-.9px) rotateX(-.28deg); opacity: .5; filter: brightness(1.14); }
 }
+/* ومضةُ ضوءٍ خاطفة عند لحظة الاصطدام تعطي إحساس القوّة */
 @keyframes pressLight {
-  0%, 100% { opacity: 0; }
-  28% { opacity: .42; }
-  50% { opacity: .82; }
-  76% { opacity: .22; }
+  0%, 100% { opacity: 0; transform: scale(.7); }
+  30% { opacity: .6; transform: scale(.9); }
+  50% { opacity: .95; transform: scale(1); }
+  78% { opacity: .2; transform: scale(1.08); }
 }
 .opening .door-scene,
 .opened .door-scene {
@@ -254,24 +265,36 @@ main { max-width: 480px; margin: 0 auto; }
   border-top-right-radius: 100% 8.8%;
   --edge-dir: left;
 }
-.opened .arch::after { opacity: 0; transition: opacity .6s ease .25s; }
-.opened .leaf-left  { animation: openLeafLeft 4.7s cubic-bezier(.14,.62,.14,1) forwards; }
-.opened .leaf-right { animation: openLeafRight 4.7s cubic-bezier(.14,.62,.14,1) forwards; }
+/* لحظة التشويق: خيطُ النور بين الدرفتين يتوهّج قبيل الانفتاح ثمّ يذوب */
+.opened .arch::after { animation: seamFlare 1.2s ease-out forwards; }
+@keyframes seamFlare {
+  0% { opacity: .32; box-shadow: 0 0 20px rgba(255,243,225,.72), 0 0 44px rgba(255,225,180,.34); }
+  26% { opacity: 1; box-shadow: 0 0 34px rgba(255,244,214,.95), 0 0 78px rgba(255,222,165,.62); }
+  100% { opacity: 0; box-shadow: 0 0 20px rgba(255,243,225,0); }
+}
+/* الدرفتان تتمهّلان لحظةً (التشويق) ثمّ تُفتحان بثقلٍ وهدوء */
+.opened .leaf-left  { animation: openLeafLeft 4.7s cubic-bezier(.14,.62,.14,1) .35s forwards; }
+.opened .leaf-right { animation: openLeafRight 4.7s cubic-bezier(.14,.62,.14,1) .35s forwards; }
+/* الدرفة اليسرى: ارتعاشة فكّ المزلاج ← ثمّ تُفتح بثقلٍ ← ثمّ تستقرّ برفق */
 @keyframes openLeafLeft {
   0% { transform: rotateY(0) translateZ(0); filter: brightness(1); box-shadow: inset 0 -24px 28px rgba(42,18,8,.18); }
-  12% { transform: rotateY(7deg) translateZ(2px); filter: brightness(.88); }
-  35% { transform: rotateY(54deg) translateZ(7px) translateX(-1px); filter: brightness(.7) saturate(.95); }
-  72% { transform: rotateY(124deg) translateZ(10px) translateX(-3px); filter: brightness(.48) saturate(.9); box-shadow: inset -62px 0 58px rgba(0,0,0,.52), 22px 14px 32px rgba(14,7,3,.36); }
-  84% { transform: rotateY(113deg) translateZ(8px) translateX(-2px); }
-  100% { transform: rotateY(118deg) translateZ(8px) translateX(-2px); filter: brightness(.5) saturate(.9); box-shadow: inset -56px 0 54px rgba(0,0,0,.5), 18px 12px 30px rgba(14,7,3,.34); }
+  6% { transform: rotateY(2.4deg) translateZ(1px); filter: brightness(.93); }
+  13% { transform: rotateY(1.4deg) translateZ(0); filter: brightness(.9); }
+  30% { transform: rotateY(28deg) translateZ(5px); filter: brightness(.78) saturate(.96); }
+  50% { transform: rotateY(72deg) translateZ(8px) translateX(-1px); filter: brightness(.62) saturate(.93); }
+  74% { transform: rotateY(125deg) translateZ(10px) translateX(-3px); filter: brightness(.46) saturate(.9); box-shadow: inset -62px 0 58px rgba(0,0,0,.52), 22px 14px 32px rgba(14,7,3,.36); }
+  87% { transform: rotateY(112deg) translateZ(8px) translateX(-2px); filter: brightness(.5) saturate(.9); }
+  100% { transform: rotateY(117deg) translateZ(8px) translateX(-2px); filter: brightness(.5) saturate(.9); box-shadow: inset -56px 0 54px rgba(0,0,0,.5), 18px 12px 30px rgba(14,7,3,.34); }
 }
 @keyframes openLeafRight {
   0% { transform: rotateY(0) translateZ(0); filter: brightness(1); box-shadow: inset 0 -24px 28px rgba(42,18,8,.18); }
-  12% { transform: rotateY(-7deg) translateZ(2px); filter: brightness(.88); }
-  35% { transform: rotateY(-54deg) translateZ(7px) translateX(1px); filter: brightness(.7) saturate(.95); }
-  72% { transform: rotateY(-124deg) translateZ(10px) translateX(3px); filter: brightness(.48) saturate(.9); box-shadow: inset 62px 0 58px rgba(0,0,0,.52), -22px 14px 32px rgba(14,7,3,.36); }
-  84% { transform: rotateY(-113deg) translateZ(8px) translateX(2px); }
-  100% { transform: rotateY(-118deg) translateZ(8px) translateX(2px); filter: brightness(.5) saturate(.9); box-shadow: inset 56px 0 54px rgba(0,0,0,.5), -18px 12px 30px rgba(14,7,3,.34); }
+  6% { transform: rotateY(-2.4deg) translateZ(1px); filter: brightness(.93); }
+  13% { transform: rotateY(-1.4deg) translateZ(0); filter: brightness(.9); }
+  30% { transform: rotateY(-28deg) translateZ(5px); filter: brightness(.78) saturate(.96); }
+  50% { transform: rotateY(-72deg) translateZ(8px) translateX(1px); filter: brightness(.62) saturate(.93); }
+  74% { transform: rotateY(-125deg) translateZ(10px) translateX(3px); filter: brightness(.46) saturate(.9); box-shadow: inset 62px 0 58px rgba(0,0,0,.52), -22px 14px 32px rgba(14,7,3,.36); }
+  87% { transform: rotateY(-112deg) translateZ(8px) translateX(2px); filter: brightness(.5) saturate(.9); }
+  100% { transform: rotateY(-117deg) translateZ(8px) translateX(2px); filter: brightness(.5) saturate(.9); box-shadow: inset 56px 0 54px rgba(0,0,0,.5), -18px 12px 30px rgba(14,7,3,.34); }
 }
 
 /* اسما العروسين على الباب المسكّر */
@@ -334,14 +357,30 @@ main { max-width: 480px; margin: 0 auto; }
 }
 
 .light-flash {
+  /* توهّجٌ ذهبيّ دافئ وناعم ينبعث من عمق الحديقة — بلا أي خطّ أو شريط حادّ */
   background:
-    radial-gradient(ellipse at 50% 45%, rgba(255,255,255,1) 0%, rgba(255,246,232,.92) 24%, rgba(255,238,214,.45) 44%, transparent 70%),
-    linear-gradient(to bottom, transparent 0%, rgba(255,255,255,.72) 40%, transparent 78%);
+    radial-gradient(ellipse 58% 46% at 50% 40%,
+      rgba(255,228,172,.4) 0%,
+      rgba(255,216,152,.2) 40%,
+      rgba(255,208,140,.08) 62%,
+      transparent 78%);
   opacity: 0;
   pointer-events: none;
+  transform-origin: 50% 42%;
+  transform: scale(.7);
   z-index: 5;
+  mix-blend-mode: screen;
+  filter: blur(6px);
 }
-.opened .light-flash { animation: none; }
+/* التوهّج يكبر بلطف مع انفتاح الباب ثمّ يذوب حين تنكشف الحديقة — بلا وميضٍ ولا خطّ */
+.opened .light-flash { animation: doorGlow 4.2s cubic-bezier(.22,.61,.3,1) .35s forwards; }
+@keyframes doorGlow {
+  0%   { opacity: 0;   transform: scale(.62); }
+  20%  { opacity: .55; transform: scale(.8); }
+  48%  { opacity: .5;  transform: scale(.94); }
+  74%  { opacity: .24; transform: scale(1.04); }
+  100% { opacity: 0;   transform: scale(1.12); }
+}
 @keyframes flash {
   0% { opacity: 0; }
   28% { opacity: 1; }
@@ -651,6 +690,73 @@ main { max-width: 480px; margin: 0 auto; }
   border: 1px solid #e3d2ea;
 }
 .btn-wide { width: 100%; padding: 14px; font-size: 18px; }
+.btn-ic { font-size: 15px; }
+
+/* معاينة الخريطة */
+.map-preview {
+  position: relative;
+  display: block;
+  width: min(100%, 420px);
+  margin: 0 auto 16px;
+  aspect-ratio: 16 / 10;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #e3d2ea;
+  box-shadow: 0 12px 30px rgba(138,108,196,.22);
+  text-decoration: none;
+}
+.map-frame {
+  width: 100%; height: 100%;
+  border: 0;
+  display: block;
+  filter: saturate(1.02);
+  pointer-events: none;            /* النقر يفتح الخريطة الكاملة بدل التحريك داخل الإطار */
+}
+.map-pin {
+  position: absolute;
+  left: 50%; bottom: 12px;
+  transform: translateX(-50%);
+  padding: 7px 16px;
+  font-family: "Amiri", serif;
+  font-size: 14px;
+  color: #fff;
+  background: rgba(122,92,180,.9);
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(60,30,90,.3);
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+/* زرّ مشاركة الدعوة */
+.btn-share {
+  margin-top: 18px;
+  background: linear-gradient(135deg, #6fce9a, #3fae78);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(63,174,120,.32);
+}
+.btn-share .share-ic { font-size: 15px; }
+
+/* زرّ كتم الموسيقى — عائم أعلى يسار الشاشة */
+.music-toggle {
+  position: fixed;
+  top: 14px; left: 14px;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(255,227,188,.4);
+  border-radius: 50%;
+  background: rgba(70,40,24,.42);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 19px;
+  cursor: pointer;
+  z-index: 60;
+  box-shadow: 0 6px 18px rgba(20,10,5,.28);
+  transition: transform .15s ease, background .2s ease;
+}
+.music-toggle:active { transform: scale(.92); }
+.music-toggle .mt-off { display: none; }
+.music-toggle.muted .mt-on { display: none; }
+.music-toggle.muted .mt-off { display: inline; }
 
 /* تنويهات */
 .notice-card {
@@ -826,7 +932,8 @@ main { max-width: 480px; margin: 0 auto; }
 }
 
 .bird-flight .dove-inner {
-  animation: wingFloat var(--flap) ease-in-out infinite alternate;
+  position: relative;
+  animation: wingFloat calc(var(--flap) * 2) ease-in-out infinite alternate;
   transform-origin: center;
 }
 .bird-image,
@@ -834,15 +941,34 @@ main { max-width: 480px; margin: 0 auto; }
   display: block;
   width: 100%;
   height: auto;
-  opacity: 1;
   mix-blend-mode: normal;
   object-position: center;
   filter:
     drop-shadow(0 2px 3px rgba(45, 30, 20, 0.25))
     drop-shadow(0 5px 10px rgba(45, 30, 20, 0.18));
 }
+/* اللقطات الثلاث متراكبة، وتتبدّل شفافيّتها لتُحاكي خفقان الجناح */
+.bird-flight .frame { opacity: 0; will-change: opacity; }
+.bird-flight .frame-2,
+.bird-flight .frame-3 { position: absolute; top: 0; left: 0; }
+.bird-flight .frame-1 { position: relative; opacity: 1; animation: flapUp   var(--flap) ease-in-out infinite; }
+.bird-flight .frame-2 {                                animation: flapMid  var(--flap) ease-in-out infinite; }
+.bird-flight .frame-3 {                                animation: flapDown var(--flap) ease-in-out infinite; }
 .bird-image.flipped,
 .bird-flight img.flipped { transform: scaleX(-1); }
+
+/* دورة الرفرفة: أعلى ← وسط ← أسفل ← وسط، بتلاشٍ خفيف يوحي بضبابيّة الحركة */
+@keyframes flapUp {
+  0%, 10% { opacity: 1; } 24% { opacity: 0; }
+  76% { opacity: 0; } 90%, 100% { opacity: 1; }
+}
+@keyframes flapMid {
+  0%, 14% { opacity: 0; } 26%, 40% { opacity: 1; } 52% { opacity: 0; }
+  60% { opacity: 0; } 72%, 86% { opacity: 1; } 98%, 100% { opacity: 0; }
+}
+@keyframes flapDown {
+  0%, 40% { opacity: 0; } 52%, 66% { opacity: 1; } 78%, 100% { opacity: 0; }
+}
 
 @keyframes birdFlight {
   0% {

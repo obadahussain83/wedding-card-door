@@ -27,19 +27,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Aref+Ruqaa:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="public/assets/birds/bird-1.png">
-<link rel="preload" as="image" href="public/assets/birds/dove.png">
+<!-- الصورة الأولى الظاهرة: الباب — نحمّلها مبكراً لأسرع ظهور -->
+<link rel="preload" as="image" href="assets/door-generated.png">
+<!-- لقطات الحمام الثلاث المستخدمة فعلياً في الرفرفة (البقية أُزيلت لتخفيف التحميل) -->
 <link rel="preload" as="image" href="public/assets/birds/dove-wings-up.png">
 <link rel="preload" as="image" href="public/assets/birds/dove-wings-middle.png">
 <link rel="preload" as="image" href="public/assets/birds/dove-wings-down.png">
-<link rel="preload" as="image" href="public/assets/birds/bird-2.png">
-<link rel="preload" as="image" href="public/assets/birds/bird-3.png">
-<link rel="preload" as="image" href="public/assets/birds/bird-4.png">
-<link rel="preload" as="image" href="public/assets/birds/bird-5.png">
-<link rel="preload" as="image" href="public/assets/birds/bird-6.png">
-<link rel="stylesheet" href="style.css?v=20260802-15">
+<link rel="stylesheet" href="style.css?v=20260813-1">
 </head>
 <body>
+
+<!-- ═══════════ موسيقى الخلفية ═══════════ -->
+<audio id="bgMusic" src="assets/audio/wedding-music.mp4" loop preload="none"></audio>
+<button id="musicToggle" class="music-toggle" type="button" aria-label="كتم الموسيقى" hidden>
+  <span class="mt-on">🔊</span><span class="mt-off">🔇</span>
+</button>
 
 <!-- ═══════════ الغلاف: الباب ═══════════ -->
 <header class="hero" id="hero">
@@ -135,6 +137,12 @@
     <h2 class="sec-title">مكان الحفل</h2>
     <p class="venue-name">قاعة حياة</p>
     <p class="venue-city">نابلس</p>
+    <a class="map-preview" target="_blank" rel="noopener"
+       href="https://www.google.com/maps/search/?api=1&amp;query=%D9%82%D8%A7%D8%B9%D8%A9%20%D8%AD%D9%8A%D8%A7%D8%A9%20%D9%86%D8%A7%D8%A8%D9%84%D8%B3"
+       aria-label="افتح موقع قاعة حياة على الخريطة">
+      <iframe class="map-frame" title="خريطة قاعة حياة" loading="lazy" tabindex="-1"
+        src="https://www.google.com/maps?q=%D9%82%D8%A7%D8%B9%D8%A9%20%D8%AD%D9%8A%D8%A7%D8%A9%20%D9%86%D8%A7%D8%A8%D9%84%D8%B3&amp;output=embed"></iframe>
+    </a>
     <a class="btn btn-purple" target="_blank" rel="noopener"
        href="https://www.google.com/maps/search/?api=1&amp;query=%D9%82%D8%A7%D8%B9%D8%A9%20%D8%AD%D9%8A%D8%A7%D8%A9%20%D9%86%D8%A7%D8%A8%D9%84%D8%B3">
        📍 الموقع على الخريطة
@@ -156,6 +164,9 @@
     <p class="families-line">حضوركم يفتح أبوابَ سعادتنا</p>
     <p class="families-names">عائلة العريس &amp; عائلة العروس</p>
     <p class="hashtag">#أحمد_وسارة</p>
+    <button class="btn btn-share" id="btnShare" type="button">
+      <span class="share-ic">🤍</span> شارك الدعوة مع الأحبّة
+    </button>
   </section>
 
   <!-- ═══════════ احفظ الموعد ═══════════ -->
@@ -171,9 +182,9 @@
     </div>
     <p class="cal-hint">📲 أضف الموعد إلى تقويم هاتفك بضغطة</p>
     <div class="cal-btns">
-      <button class="btn btn-outline" id="btnIcs">تقويم آيفون</button>
+      <button class="btn btn-outline" id="btnIcs"><span class="btn-ic">🍎</span> تقويم آيفون</button>
       <a class="btn btn-outline" target="_blank" rel="noopener"
-         href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=%D8%AD%D9%81%D9%84%20%D8%B2%D9%81%D8%A7%D9%81%20%D8%A3%D8%AD%D9%85%D8%AF%20%D9%88%20%D8%B3%D8%A7%D8%B1%D8%A9&amp;dates=20261120T170000Z/20261120T220000Z&amp;location=%D9%82%D8%A7%D8%B9%D8%A9%20%D8%AD%D9%8A%D8%A7%D8%A9%D8%8C%20%D9%86%D8%A7%D8%A8%D9%84%D8%B3">تقويم جوجل</a>
+         href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=%D8%AD%D9%81%D9%84%20%D8%B2%D9%81%D8%A7%D9%81%20%D8%A3%D8%AD%D9%85%D8%AF%20%D9%88%20%D8%B3%D8%A7%D8%B1%D8%A9&amp;dates=20261120T170000Z/20261120T220000Z&amp;location=%D9%82%D8%A7%D8%B9%D8%A9%20%D8%AD%D9%8A%D8%A7%D8%A9%D8%8C%20%D9%86%D8%A7%D8%A8%D9%84%D8%B3"><span class="btn-ic">📅</span> تقويم جوجل</a>
     </div>
   </section>
 
@@ -203,6 +214,6 @@
 
 </main>
 
-<script src="script.js"></script>
+<script src="script.js?v=20260813-1"></script>
 </body>
 </html>
