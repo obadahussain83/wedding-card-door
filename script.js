@@ -81,7 +81,7 @@ function flutterSound(dur = 4.4) {
     const c = getCtx();
     const t0 = c.currentTime;
     const master = c.createGain();
-    master.gain.setValueAtTime(0.9, t0);
+    master.gain.setValueAtTime(1.35, t0);            // أوضح وأقوى
     master.gain.exponentialRampToValueAtTime(0.001, t0 + dur + 0.25);
     master.connect(c.destination);
     const beats = Math.floor(dur / 0.072);
@@ -107,10 +107,10 @@ function flutterSound(dur = 4.4) {
       lp.frequency.value = 1350 + Math.random() * 650;
       const g = c.createGain();
       const closePass = i > beats * 0.18 && i < beats * 0.7 ? 1.28 : 1;
-      const amp = 0.42 * closePass * (1 - i / beats * 0.46);
+      const amp = 0.6 * closePass * (1 - i / beats * 0.42);   // خفقات أوضح
       g.gain.setValueAtTime(0.001, t);
       g.gain.linearRampToValueAtTime(amp, t + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
       if (c.createStereoPanner) {
         const pan = c.createStereoPanner();
         pan.pan.setValueAtTime(Math.sin(i * 1.4) * 0.48, t);
@@ -130,7 +130,7 @@ function doveFlightSound(dur = 4.2) {
     const t0 = c.currentTime;
     const master = c.createGain();
     master.gain.setValueAtTime(0.001, t0);
-    master.gain.exponentialRampToValueAtTime(0.22, t0 + 0.18);
+    master.gain.exponentialRampToValueAtTime(0.34, t0 + 0.18);   // حفيف أجنحة أوضح
     master.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
     master.connect(c.destination);
 
@@ -217,6 +217,7 @@ doorScene.addEventListener("click", () => {
         spawnDoves(true);
         flutterSound(4.4);
         doveFlightSound(4.2);
+        duckMusic(4.6);          // نخفض الموسيقى مؤقتاً ليَبين صوت الرفرفة
       }, 600);
     }, 350);
   }
@@ -225,27 +226,44 @@ doorScene.addEventListener("click", () => {
 /* ═══════════ موسيقى الخلفية ═══════════ */
 const bgMusic = document.getElementById("bgMusic");
 const musicToggle = document.getElementById("musicToggle");
+const MUSIC_LEVEL = 0.55;
 let musicStarted = false;
+let volTimer = null;           // مؤقّت واحد يتحكّم بكل تدرّجات الصوت (تصاعد/عودة)
+let duckTimer = null;
+
+// تدرّج ناعم لمستوى الصوت نحو هدف معيّن — يلغي أي تدرّج سابق فلا يتعارضان
+function fadeMusicTo(target, step = 0.04, ms = 110) {
+  clearInterval(volTimer);
+  volTimer = setInterval(() => {
+    const v = bgMusic.volume;
+    if (v < target) bgMusic.volume = Math.min(v + step, target);
+    else bgMusic.volume = Math.max(v - step, target);
+    if (Math.abs(bgMusic.volume - target) < 0.005) { bgMusic.volume = target; clearInterval(volTimer); }
+  }, ms);
+}
+
 function startMusic() {
   if (musicStarted || !bgMusic) return;
   musicStarted = true;
   bgMusic.volume = 0;
   const p = bgMusic.play();
   if (p && p.then) {
-    p.then(() => {
-      musicToggle.hidden = false;
-      // تصعيدٌ لطيف للصوت بدل أن يبدأ فجأة
-      let v = 0;
-      const iv = setInterval(() => {
-        v += 0.05;
-        bgMusic.volume = Math.min(v, 0.55);
-        if (v >= 0.55) clearInterval(iv);
-      }, 120);
-    }).catch(() => { musicStarted = false; });
+    p.then(() => { musicToggle.hidden = false; fadeMusicTo(MUSIC_LEVEL); })
+     .catch(() => { musicStarted = false; });
   } else {
     musicToggle.hidden = false;
   }
 }
+
+// خفضٌ مؤقّت لصوت الموسيقى (ducking) ليَظهر صوت الطيور بوضوح ثمّ يعود تدريجياً
+function duckMusic(seconds = 4.6) {
+  if (!bgMusic || bgMusic.muted) return;
+  clearInterval(volTimer);
+  bgMusic.volume = 0.14;
+  clearTimeout(duckTimer);
+  duckTimer = setTimeout(() => fadeMusicTo(MUSIC_LEVEL), seconds * 1000);
+}
+
 if (musicToggle) {
   musicToggle.addEventListener("click", () => {
     bgMusic.muted = !bgMusic.muted;
@@ -500,48 +518,15 @@ document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
 /* ═══════════ تقويم آيفون (ملف ICS) ═══════════ */
 document.getElementById("btnIcs").addEventListener("click", () => {
-  const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-  const ics = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//wedding//ar",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    "BEGIN:VEVENT",
-    "UID:ahmad-sara-wedding-20261120@invitation",
-    `DTSTAMP:${stamp}`,
-    "DTSTART:20261120T170000Z",
-    "DTEND:20261120T220000Z",
-    `SUMMARY:حفل زفاف ${CONFIG.groom} و ${CONFIG.bride}`,
-    `LOCATION:${CONFIG.venue}`,
-    "DESCRIPTION:فتحنا باب فرحتنا.. وطارت البشائر بدعوتكم",
-    "BEGIN:VALARM",
-    "TRIGGER:-P1D",
-    "ACTION:DISPLAY",
-    "DESCRIPTION:تذكير بحفل الزفاف غدًا",
-    "END:VALARM",
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-
-  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-  if (isIOS) {
-    // على iOS تحميل blob عبر download غير موثوق — نفتح data URI فيعرض iOS "أضف إلى التقويم"
-    window.location.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
-    return;
-  }
-  // بقية الأجهزة (أندرويد/ويندوز/ماك): تنزيل ملف .ics
-  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+  // ملف .ics حقيقي مرفوع — أوثق طريقة على آيفون (Safari يعرض "أضف إلى التقويم")
+  // وعلى أندرويد/سطح المكتب يفتح/ينزّل الحدث مباشرة
   const a = document.createElement("a");
-  a.href = url;
-  a.download = "wedding.ics";
+  a.href = "assets/wedding.ics?v=20260813";
+  a.setAttribute("download", "wedding.ics");
+  a.rel = "noopener";
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
 });
 
 /* ═══════════ تأكيد الحضور ═══════════ */
